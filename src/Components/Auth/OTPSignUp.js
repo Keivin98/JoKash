@@ -4,21 +4,26 @@ import FastImage from 'react-native-fast-image'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {useNavigation} from '@react-navigation/native';
 import {Animated} from 'react-native';
+import auth from '@react-native-firebase/auth';
 import ConfirmRegistration from './ConfirmRegistration';
-
+import firestore, {firebase} from '@react-native-firebase/firestore';
 
 
 const OTPVerification = ({route}) => {
-    const {phoneNumber, countryCode} = route.params;
-    const [isValidNumber, setIsValidNumber] = useState(false);
+    const {phoneNumber, countryCode, confirmationResult, name, email} = route.params;
+    const [confirmation, setConfirmation] = useState(confirmationResult);
     const [timer, setTimer] = useState(30);
     const [showResend, setShowResend] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
+    const [inputsValid, setInputsValid] = useState([true, true, true, true, true, true]);
 
-    const [otp, setOtp] = useState(['', '', '', '']);
+    const [user, setUser] = useState(null);
+    const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const secondInput = useRef();
     const thirdInput = useRef();
     const fourthInput = useRef();
+    const fifthInput = useRef();
+    const sixthInput = useRef();
 
     const navigation = useNavigation();
 
@@ -37,25 +42,89 @@ const OTPVerification = ({route}) => {
 
     const handleResendCode = () => {
         // Logic to resend code
-        setTimer(30);
-        setShowResend(false);
+        auth()
+            .signInWithPhoneNumber(countryCode + phoneNumber)
+            .then(confirmResult => {
+                setConfirmation(confirmResult);
+                setTimer(30);
+                setShowResend(false);
+
+            })
+            .catch(error => {
+                alert(error.message)
+                console.log(error)
+            })
+
     };
+
+    handleVerifyCode = (verificationCode) => {
+        console.log("verify code", verificationCode)
+
+        // Request for OTP verification
+        confirmation
+            .confirm(verificationCode)
+            .then(user => {
+                console.log({
+                    uid: user.user.uid,
+                    phoneNumber: countryCode + phoneNumber,
+                    fullName: name,
+                    email: email,
+                })
+
+                const userData = {
+                    phoneNumber: countryCode + phoneNumber,
+                    fullName: name,
+                    email: email,
+                }
+                // Write to Firestore
+                firestore()
+                    .collection('users')
+                    .doc(user.user.uid) // Using the UID as the document ID
+                    .set(userData)
+                    .then(() => {
+                        console.log('User added to Firestore!');
+                        setUser(user)
+                    })
+                    .catch(error => {
+                        console.error('Error writing to Firestore:', error);
+                    });
+            })
+            .catch(error => {
+                alert(error.message)
+                console.log(error)
+            })
+    }
 
     const handleContinue = () => {
-        setModalVisible(true);
-    };
-    const handleOtpChange = (text, index) => {
-        const newOtp = [...otp];
-        newOtp[index] = text;
-        setOtp(newOtp);
+        const allInputsValid = otp.every(val => val !== ""); // Check if all inputs are valid
 
-        // Focus next input on digit enter
-        if (text && index < 3) {
-            const nextInput = [secondInput, thirdInput, fourthInput][index];
-            nextInput.current.focus();
+        if (allInputsValid) {
+            // Your existing code here
+            handleVerifyCode(otp.reduce((prev, curr) => prev + curr));
+            setModalVisible(!modalVisible);
+        } else {
+            // If any inputs are invalid, make their borders red
+            setInputsValid(otp.map(val => val !== ''))
         }
     };
 
+
+    const handleOtpChange = (text, index) => {
+        const newOtp = [...otp];
+        const newInputsValid = [...inputsValid];
+
+        newOtp[index] = text;
+        newInputsValid[index] = text.trim().length === 1;
+
+        setOtp(newOtp);
+        setInputsValid(newInputsValid);
+
+        // Focus next input on digit enter
+        if (text && index < otp.length - 1) {
+            const nextInput = [secondInput, thirdInput, fourthInput, fifthInput, sixthInput][index];
+            nextInput.current.focus();
+        }
+    };
     return (
         <SafeAreaView style={[styles.safeContainer, {opacity: modalVisible ? 0.15 : 1}]}>
             <View style={styles.container}>
@@ -76,14 +145,21 @@ const OTPVerification = ({route}) => {
                         {otp.map((digit, index) => (
                             <TextInput
                                 key={index}
-                                style={styles.otpInput}
+                                style={[styles.otpInput, !inputsValid[index] && styles.invalidInput]}
                                 value={digit}
                                 onChangeText={(text) => handleOtpChange(text, index)}
                                 keyboardType="number-pad"
                                 maxLength={1}
-                                ref={index === 1 ? secondInput : index === 2 ? thirdInput : index === 3 ? fourthInput : null}
+                                ref={index === 1 ? secondInput :
+                                    index === 2 ? thirdInput :
+                                        index === 3 ? fourthInput :
+                                            index === 4 ? fifthInput :
+                                                index === 5 ? sixthInput :
+                                                    null}
                             />
                         ))}
+
+
                     </View>
                     <TouchableOpacity style={styles.button} onPress={handleContinue}>
                         <Text style={styles.buttonText}>Continue</Text>
@@ -123,6 +199,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontFamily: "Avenir-Heavy",
         color: "#176B87"
+    },
+    invalidInput: {
+        borderBottomColor: 'red',
     },
     title: {
         fontSize: 24,

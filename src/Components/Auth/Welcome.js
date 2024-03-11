@@ -74,7 +74,7 @@ const Welcome = () => {
                 </TouchableOpacity>
                 <View style={styles.registerContainer}>
                     <Text style={styles.registerQuestion}>Don't have an account?</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('OTPNumber')}>
+                    <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
                         <Text style={styles.registerText}>Register</Text>
                     </TouchableOpacity>
                 </View>

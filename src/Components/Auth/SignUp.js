@@ -6,15 +6,18 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import {parsePhoneNumber, ParseError} from 'libphonenumber-js';
 import {useNavigation} from '@react-navigation/native';
 import {Animated} from 'react-native';
-
+import auth from '@react-native-firebase/auth';
 
 
 const OTPNumber = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
     const [countryCode, setCountryCode] = useState('+974');
     const [country, setCountry] = useState('QA');
     const [countryShow, setCountryShow] = useState(false);
     const [isValidNumber, setIsValidNumber] = useState(false);
+    const [confirmationResult, setConfirmationResult] = useState(null);
     const shakeAnimation = new Animated.Value(0);
 
     const navigation = useNavigation();
@@ -31,18 +34,29 @@ const OTPNumber = () => {
             setIsValidNumber(false);
         }
     };
-
+    handleSendCode = (phoneNumber, countryCode) => {
+        // Request to send OTP
+        auth()
+            .signInWithPhoneNumber(countryCode + phoneNumber)
+            .then(confirmResult => {
+                setConfirmationResult(confirmResult);
+            })
+            .catch(error => {
+                alert(error.message)
+                console.log(error)
+            })
+    }
     const handleContinue = () => {
-        if (isValidNumber) {
-
-            navigation.navigate('OTPVerification', {phoneNumber, countryCode});
-        } else {
+        if (!isValidNumber) {
             Animated.sequence([
                 Animated.timing(shakeAnimation, {toValue: 10, duration: 100, useNativeDriver: true}),
                 Animated.timing(shakeAnimation, {toValue: -10, duration: 100, useNativeDriver: true}),
                 Animated.timing(shakeAnimation, {toValue: 10, duration: 100, useNativeDriver: true}),
                 Animated.timing(shakeAnimation, {toValue: 0, duration: 100, useNativeDriver: true})
             ]).start();
+        } else {
+            handleSendCode(phoneNumber, countryCode);
+            navigation.navigate('OTPSignUp', {phoneNumber, countryCode, confirmationResult, name, email});
         }
     };
 
@@ -61,13 +75,30 @@ const OTPNumber = () => {
                 </TouchableOpacity>
                 <Text style={styles.header}>Step 1/3</Text>
                 <FastImage
-                    style={{width: 300, height: 300, alignSelf: 'center'}}
+                    style={{width: 200, height: 200, alignSelf: 'center'}}
                     source={require("../../Assets/phone_otp.png")}
                     resizeMode={FastImage.resizeMode.contain}
                 />
                 <Text style={styles.title}>Registration</Text>
-                <Text style={styles.subtitle}>Enter your mobile number, we will send you OTP to verify later</Text>
+                <Text style={styles.subtitle}>Enter your information,{'\n'}
+                    we will send you OTP to verify later</Text>
                 <View style={styles.inputContainer}>
+                    <View style={styles.numberContainer}>
+                        <TextInput
+                            style={[styles.input]}
+                            onChangeText={setName}
+                            value={name}
+                            placeholder="Full Name"
+                        />
+                    </View>
+                    <View style={styles.numberContainer}>
+                        <TextInput
+                            style={[styles.input]}
+                            onChangeText={setEmail}
+                            value={email}
+                            placeholder="Email"
+                        />
+                    </View>
                     <View style={styles.numberContainer}>
                         <TouchableOpacity
                             onPress={() => setCountryShow(true)}
@@ -104,7 +135,8 @@ const OTPNumber = () => {
                             </Animated.View>
                         )}
                     </View>
-                    <TouchableOpacity style={styles.button} onPress={handleContinue}>
+                    <TouchableOpacity style={styles.button} onPress={handleContinue}
+                        disabled={name === "" || email == ""}>
                         <Text style={styles.buttonText}>Continue</Text>
                     </TouchableOpacity>
                 </View>

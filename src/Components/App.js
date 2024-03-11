@@ -3,9 +3,14 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 import Welcome from "./Auth/Welcome"
-import OTPNumber from './Auth/OTPNumber';
-import OTPVerification from './Auth/OTPVerification';
 import SignIn from "./Auth/SignIn"
+import SignUp from "./Auth/SignUp"
+
+import OTPSignUp from './Auth/OTPSignUp';
+import OTPSignIn from './Auth/OTPSignIn';
+
+
+
 
 const Stack = createNativeStackNavigator();
 
@@ -19,18 +24,23 @@ const App = () => {
                     options={{headerShown: false}}
                 />
                 <Stack.Screen
-                    name="OTPNumber"
-                    component={OTPNumber}
-                    options={{headerShown: false}}
-                />
-                <Stack.Screen
-                    name="OTPVerification"
-                    component={OTPVerification}
-                    options={{headerShown: false}}
-                />
-                <Stack.Screen
                     name="SignIn"
                     component={SignIn}
+                    options={{headerShown: false}}
+                />
+                <Stack.Screen
+                    name="OTPSignUp"
+                    component={OTPSignUp}
+                    options={{headerShown: false}}
+                />
+                <Stack.Screen
+                    name="OTPSignIn"
+                    component={OTPSignIn}
+                    options={{headerShown: false}}
+                />
+                <Stack.Screen
+                    name="SignUp"
+                    component={SignUp}
                     options={{headerShown: false}}
                 />
 

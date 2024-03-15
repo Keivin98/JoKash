@@ -42,14 +42,14 @@ const ScrollingChartWithPointer = ({activePeriod, currency, ptData}) => {
         const sampleRate = Math.ceil(filteredData.length / 50);
         if (sampleRate > 1) {
             filteredData = filteredData.filter((item, index) => index % sampleRate === 0);
-            let len = filteredData.length;
-            filteredData = filteredData.map((val, index) => {
-                let ret = val;
-                ret['index'] = index;
-                ret['max'] = len;
-                return ret;
-            })
         }
+        let len = filteredData.length;
+        filteredData = filteredData.map((val, index) => {
+            let ret = val;
+            ret['index'] = index;
+            ret['max'] = len;
+            return ret;
+        })
 
         const maxDataPoints = 50;
         const numDataPoints = Math.max(Math.min(filteredData.length, maxDataPoints), 1);
@@ -64,7 +64,10 @@ const ScrollingChartWithPointer = ({activePeriod, currency, ptData}) => {
         setSpacing(spacing);
         // The chart will now be updated with filteredData and new spacing
     }, [activePeriod]);
-
+    const showItems = (items) => {
+        console.log("is it last 80%? ", items[0], items[0].index, items[0].max, items[0].index >= items[0].max * 0.8)
+        return items[0].date
+    }
     return (
         <View
             style={{
@@ -128,7 +131,7 @@ const ScrollingChartWithPointer = ({activePeriod, currency, ptData}) => {
                                         marginBottom: 6,
                                         textAlign: 'center',
                                     }}>
-                                    {items[0].date}
+                                    {showItems(items)}
                                 </Text>
 
                                 <View

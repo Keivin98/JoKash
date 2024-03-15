@@ -11,6 +11,10 @@ const ptData = [{'value': 160, 'date': '1 Jan 2024', 'expense_type': 'Groceries'
 const PersonalScreen = () => {
 
     const [activePeriod, setActivePeriod] = useState('Week');
+
+    const onPress = () => {
+        console.log("back button pressed")
+    }
     return (
         <LinearGradient
             colors={[
@@ -27,9 +31,11 @@ const PersonalScreen = () => {
             style={styles.linearGradient}
         >
             <SafeAreaView style={styles.container}>
-
+                <TouchableOpacity onPress={onPress} style={styles.backButton}>
+                    <Text style={styles.backButtonText}>Back</Text>
+                </TouchableOpacity>
                 <Text
-                    style={styles.headerText}>
+                    style={[styles.headerText, {marginLeft: 30}]}>
                     Expenses
                 </Text>
                 <LineChart activePeriod={activePeriod} currency={currency} ptData={ptData} />
@@ -109,7 +115,29 @@ const styles = StyleSheet.create({
         fontSize: 32,
         paddingBottom: 20,
         paddingTop: 30
-    }
+    },
+    backButton: {
+        ztop: 100,
+        position: "absolute",
+        top: 140,
+        left: -45,
+        width: 45 * 2,
+        height: 45,
+        backgroundColor: "rgba(255,255,255,0.2)",
+        borderBottomColor: "#fff",
+        borderLeftColor: "#fff",
+        borderRightColor: "#fff",
+        borderBottomRightRadius: 35,
+        borderBottomLeftRadius: 35,
+        transform: [{rotate: "270deg"}],
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    backButtonText: {
+        fontSize: 16,
+        color: '#fff',
+        fontFamily: "Avenir-Heavy",
+    },
 })
 
 export default PersonalScreen;

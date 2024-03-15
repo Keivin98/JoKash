@@ -42,6 +42,13 @@ const ScrollingChartWithPointer = ({activePeriod, currency, ptData}) => {
         const sampleRate = Math.ceil(filteredData.length / 50);
         if (sampleRate > 1) {
             filteredData = filteredData.filter((item, index) => index % sampleRate === 0);
+            let len = filteredData.length;
+            filteredData = filteredData.map((val, index) => {
+                let ret = val;
+                ret['index'] = index;
+                ret['max'] = len;
+                return ret;
+            })
         }
 
         const maxDataPoints = 50;
@@ -58,10 +65,6 @@ const ScrollingChartWithPointer = ({activePeriod, currency, ptData}) => {
         // The chart will now be updated with filteredData and new spacing
     }, [activePeriod]);
 
-    const showItems = (items) => {
-        console.log("items", items)
-        return items[0].date
-    }
     return (
         <View
             style={{
@@ -108,13 +111,14 @@ const ScrollingChartWithPointer = ({activePeriod, currency, ptData}) => {
                     pointerLabelWidth: 100,
                     pointerLabelHeight: 90,
                     // activatePointersOnLongPress: true,
-                    autoAdjustPointerLabelPosition: false,
+                    // autoAdjustPointerLabelPosition: false,
                     pointerLabelComponent: items => {
                         return (
                             <View
                                 style={{
                                     justifyContent: 'center',
-                                    marginLeft: -40,
+                                    width: 100,
+                                    marginLeft: items[0].index >= items[0].max * 0.8 ? -80 : 0,
                                     backgroundColor: "transparent"
                                 }}>
                                 <Text
@@ -124,7 +128,7 @@ const ScrollingChartWithPointer = ({activePeriod, currency, ptData}) => {
                                         marginBottom: 6,
                                         textAlign: 'center',
                                     }}>
-                                    {showItems(items)}
+                                    {items[0].date}
                                 </Text>
 
                                 <View

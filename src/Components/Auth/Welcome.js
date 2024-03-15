@@ -1,12 +1,35 @@
-import React, {useState} from 'react';
-import {View, Text, StyleSheet, Button, Touchable, TouchableOpacity} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, Button, ActivityIndicator, TouchableOpacity} from 'react-native';
 import Carousel, {Pagination} from 'react-native-snap-carousel';
 import {useNavigation} from '@react-navigation/native';
+import auth from '@react-native-firebase/auth';
+
 
 import FastImage from 'react-native-fast-image'
 
 
 const Welcome = () => {
+    const [loading, setLoading] = useState(false);
+    const [user, setUser] = useState(false);
+
+    useEffect(() => {
+        const subscriber = auth().onAuthStateChanged(onUserChanged);
+        return subscriber; // unsubscribe on unmount
+    }, []);
+
+    const onUserChanged = (user) => {
+        if (user) {
+            setLoading(true);
+            // User is signed in
+            // setUser(user);
+            // Navigate to the main app screen or perform other actions
+            console.log("signed in", user);
+            setTimeout(() => {
+                setLoading(false);
+                navigation.navigate('HomePage'); // Replace 'Homepage' with your actual homepage route name
+            }, 2000);
+        }
+    };
 
     const [activeSlide, setActiveSlide] = useState(0);
     const navigation = useNavigation();
@@ -70,7 +93,10 @@ const Welcome = () => {
             {/* Sign Up and Sign In buttons */}
             <View style={styles.buttonContainer}>
                 <TouchableOpacity style={styles.signinButton} onPress={() => navigation.navigate('SignIn')}>
-                    <Text style={styles.signinText}> Sign In </Text>
+                    {loading ? (
+                        <ActivityIndicator size="medium" color="#fff" /> // Customize as needed
+                    ) : (
+                        <Text style={styles.signinText}> Sign In </Text>)}
                 </TouchableOpacity>
                 <View style={styles.registerContainer}>
                     <Text style={styles.registerQuestion}>Don't have an account?</Text>
@@ -163,6 +189,9 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.75)',
     },
 });
+
+
+
 
 export default Welcome;
 
